@@ -8,8 +8,8 @@ if [ ! -f .env.production ]; then
   exit 1
 fi
 
-# Source environment variables
-source .env.production
+# Export environment variables
+export $(cat .env.production | grep -v '^#' | xargs)
 
 # Check for required database variables
 REQUIRED_VARS=("DB_HOST" "DB_USER" "DB_PASSWORD" "DB_NAME")
@@ -24,7 +24,7 @@ done
 echo "Building and starting Go backend container..."
 docker compose -f docker-compose.prod.yml down
 docker compose -f docker-compose.prod.yml build --no-cache
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d
 
 echo "Deployment completed successfully."
 echo "API server running on port 8080"
