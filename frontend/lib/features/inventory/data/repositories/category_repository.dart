@@ -1,17 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../../../core/config/app_config.dart';
 
 class CategoryRepository {
-  final String baseUrl = 'http://localhost:8080/api';
-
   // Tüm kategorileri getir
   Future<List<Map<String, dynamic>>> getAllCategories() async {
     final response = await http.get(
-      Uri.parse('$baseUrl/categories'),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
+      Uri.parse(AppConfig.categoriesEndpoint),
+      headers: AppConfig.headers,
     );
 
     if (response.statusCode == 200) {
@@ -25,10 +21,8 @@ class CategoryRepository {
   // Kategori ara
   Future<List<Map<String, dynamic>>> searchCategories(String query) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/categories/search?q=$query'),
-      headers: {
-        'Accept': 'application/json',
-      },
+      Uri.parse('${AppConfig.categoriesEndpoint}/search?q=$query'),
+      headers: AppConfig.headers,
     );
 
     if (response.statusCode == 200) {
@@ -45,11 +39,8 @@ class CategoryRepository {
     String? description,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/categories'),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
+      Uri.parse(AppConfig.categoriesEndpoint),
+      headers: AppConfig.headers,
       body: jsonEncode({
         'name': name,
         'description': description,
@@ -65,10 +56,8 @@ class CategoryRepository {
 
   Future<Map<String, dynamic>> getCategoryById(int categoryId) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/categories/$categoryId'),
-      headers: {
-        'Accept': 'application/json',
-      },
+      Uri.parse('${AppConfig.categoriesEndpoint}/$categoryId'),
+      headers: AppConfig.headers,
     );
 
     if (response.statusCode == 200) {

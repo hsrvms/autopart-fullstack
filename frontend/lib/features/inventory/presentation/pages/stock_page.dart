@@ -21,7 +21,12 @@ class _StockPageState extends State<StockPage> {
   Timer? _debounce;
   bool _isLoading = true;
   List<Map<String, dynamic>> _items = [];
-  final _dio = Dio(BaseOptions(baseUrl: AppConfig.apiUrl));
+  final _dio = Dio(BaseOptions(
+    baseUrl: AppConfig.baseUrl,
+    connectTimeout: Duration(milliseconds: AppConfig.connectTimeout),
+    receiveTimeout: Duration(milliseconds: AppConfig.receiveTimeout),
+    headers: AppConfig.headers,
+  ));
   String? _errorMessage;
 
   @override
@@ -44,7 +49,7 @@ class _StockPageState extends State<StockPage> {
     });
 
     try {
-      final response = await _dio.get('/api/items');
+      final response = await _dio.get(AppConfig.itemsEndpoint);
       if (response.statusCode == 200) {
         setState(() {
           _items = List<Map<String, dynamic>>.from(response.data);
@@ -95,7 +100,7 @@ class _StockPageState extends State<StockPage> {
       });
 
       try {
-        _dio.get('/api/items', queryParameters: {
+        _dio.get(AppConfig.searchEndpoint, queryParameters: {
           'search': value,
         }).then((response) {
           if (response.statusCode == 200) {

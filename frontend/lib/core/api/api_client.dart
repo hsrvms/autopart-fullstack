@@ -7,13 +7,10 @@ class ApiClient {
   ApiClient() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: AppConfig.apiBaseUrl,
-        connectTimeout: const Duration(milliseconds: AppConfig.connectTimeout),
-        receiveTimeout: const Duration(milliseconds: AppConfig.receiveTimeout),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        baseUrl: AppConfig.baseUrl,
+        connectTimeout: Duration(milliseconds: AppConfig.connectTimeout),
+        receiveTimeout: Duration(milliseconds: AppConfig.receiveTimeout),
+        headers: AppConfig.headers,
       ),
     );
 
@@ -21,15 +18,15 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          // İstek öncesi işlemler (örn: token ekleme)
+          print('İstek yapılıyor: ${options.uri}');
           return handler.next(options);
         },
         onResponse: (response, handler) {
-          // Yanıt sonrası işlemler
+          print('Yanıt alındı: ${response.statusCode}');
           return handler.next(response);
         },
         onError: (error, handler) {
-          // Hata yönetimi
+          print('Hata oluştu: ${error.message}');
           return handler.next(error);
         },
       ),

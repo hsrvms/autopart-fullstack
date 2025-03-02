@@ -1,19 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/model_model.dart';
+import '../../../../core/config/app_config.dart';
 
 class ModelRepository {
-  final String baseUrl;
-
-  ModelRepository({this.baseUrl = 'http://localhost:8080/api'});
-
   Future<List<Model>> getModelsByMake(int makeId) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/makes/$makeId/models'),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
+      Uri.parse('${AppConfig.makesEndpoint}/$makeId/models'),
+      headers: AppConfig.headers,
     );
 
     if (response.statusCode == 200) {
@@ -26,11 +20,8 @@ class ModelRepository {
 
   Future<Model> getModelById(int id) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/models/$id'),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
+      Uri.parse('${AppConfig.modelsEndpoint}/$id'),
+      headers: AppConfig.headers,
     );
 
     if (response.statusCode == 200) {

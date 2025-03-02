@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
+import '../../../../core/config/app_config.dart';
 
 class InventoryPage extends StatefulWidget {
   const InventoryPage({Key? key}) : super(key: key);
@@ -22,7 +23,10 @@ class _InventoryPageState extends State<InventoryPage> {
 
   Future<void> _loadItems() async {
     try {
-      final response = await http.get(Uri.parse('http://localhost:8080/api/items'));
+      final response = await http.get(
+        Uri.parse(AppConfig.itemsEndpoint),
+        headers: AppConfig.headers,
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);

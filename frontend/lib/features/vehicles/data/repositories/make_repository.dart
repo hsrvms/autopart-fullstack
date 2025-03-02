@@ -8,7 +8,7 @@ class MakeRepository {
 
   Future<List<Make>> getAllMakes() async {
     try {
-      final response = await _dio.get('/api/makes');
+      final response = await _dio.get('/makes');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
@@ -23,7 +23,7 @@ class MakeRepository {
 
   Future<Make> getMakeById(int id) async {
     try {
-      final response = await _dio.get('/api/makes/$id');
+      final response = await _dio.get('/makes/$id');
       return Make.fromJson(response.data);
     } catch (e) {
       throw Exception('Marka detayları yüklenirken bir hata oluştu: $e');
@@ -32,7 +32,7 @@ class MakeRepository {
 
   Future<Make> createMake({required String name}) async {
     try {
-      final response = await _dio.post('/api/makes', data: {
+      final response = await _dio.post('/makes', data: {
         'make_name': name,
       });
 
@@ -48,7 +48,7 @@ class MakeRepository {
 
   Future<Make> updateMake(Make make) async {
     try {
-      final response = await _dio.put('/api/makes/${make.makeId}', data: {
+      final response = await _dio.put('/makes/${make.makeId}', data: {
         'make_name': make.makeName,
       });
 
@@ -64,7 +64,7 @@ class MakeRepository {
 
   Future<void> deleteMake(int makeId) async {
     try {
-      final response = await _dio.delete('/api/makes/$makeId');
+      final response = await _dio.delete('/makes/$makeId');
 
       if (response.statusCode != 204) {
         throw Exception('Marka silinirken bir hata oluştu');

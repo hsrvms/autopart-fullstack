@@ -12,7 +12,7 @@ final getIt = GetIt.instance;
 Future<void> setupDependencies() async {
   // Core
   final dio = Dio(BaseOptions(
-    baseUrl: AppConfig.apiUrl,
+    baseUrl: AppConfig.baseUrl,
     connectTimeout: const Duration(milliseconds: AppConfig.connectTimeout),
     receiveTimeout: const Duration(milliseconds: AppConfig.receiveTimeout),
     validateStatus: (status) {

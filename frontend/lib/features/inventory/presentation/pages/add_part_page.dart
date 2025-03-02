@@ -20,6 +20,7 @@ import '../../services/barcode_print_service.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/print_service.dart';
+import '../../../../core/config/app_config.dart';
 
 class AddPartPage extends StatefulWidget {
   const AddPartPage({super.key});
@@ -36,13 +37,10 @@ class _AddPartPageState extends State<AddPartPage> {
   final _partRepository = GetIt.instance<PartRepository>();
   final _categoryRepository = GetIt.instance<CategoryRepository>();
   final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://localhost:8080',
-    connectTimeout: const Duration(milliseconds: 30000),
-    receiveTimeout: const Duration(milliseconds: 30000),
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
+    baseUrl: AppConfig.baseUrl,
+    connectTimeout: Duration(milliseconds: AppConfig.connectTimeout),
+    receiveTimeout: Duration(milliseconds: AppConfig.receiveTimeout),
+    headers: AppConfig.headers,
   ));
 
   // Controller'ları ekleyelim
@@ -193,15 +191,14 @@ class _AddPartPageState extends State<AddPartPage> {
     setState(() => _isLoading = true);
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:8080/api/categories'),
-        headers: {'Accept': 'application/json', 'Content-Type': 'application/json'},
+        Uri.parse(AppConfig.categoriesEndpoint),
+        headers: AppConfig.headers,
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
           _categories = data.map((item) => Map<String, dynamic>.from(item)).toList();
-          // Kategoriler yüklendiğinde seçili kategoriyi sıfırla
           _selectedCategory = null;
         });
       } else {
@@ -226,7 +223,7 @@ class _AddPartPageState extends State<AddPartPage> {
   Future<void> _loadSuppliers() async {
     try {
       print('Tedarikçiler yükleniyor...');
-      final response = await _dio.get('http://localhost:8080/api/suppliers');
+      final response = await _dio.get(AppConfig.suppliersEndpoint);
       print('Tedarikçi API yanıtı: ${response.data}');
 
       if (response.statusCode == 200) {
@@ -427,8 +424,8 @@ class _AddPartPageState extends State<AddPartPage> {
       print('Gönderilen veri: $data');
 
       final response = await http.post(
-        Uri.parse('http://localhost:8080/api/items'),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse(AppConfig.itemsEndpoint),
+        headers: AppConfig.headers,
         body: jsonEncode(data),
       );
 
@@ -437,7 +434,6 @@ class _AddPartPageState extends State<AddPartPage> {
       if (response.statusCode == 201) {
         if (!mounted) return;
 
-        // Başarılı mesajı göster
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Parça başarıyla eklendi'),
@@ -446,7 +442,6 @@ class _AddPartPageState extends State<AddPartPage> {
           ),
         );
 
-        // Formu temizle
         _clearForm();
       } else {
         if (!mounted) return;
@@ -537,7 +532,7 @@ class _AddPartPageState extends State<AddPartPage> {
     setState(() => _isSearching = true);
     try {
       final response = await _dio.get(
-        'http://localhost:8080/api/items/search',
+        AppConfig.searchEndpoint,
         queryParameters: {'query': query},
       );
       if (response.statusCode == 200) {

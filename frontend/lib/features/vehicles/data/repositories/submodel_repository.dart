@@ -1,17 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/submodel_model.dart';
+import '../../../../core/config/app_config.dart';
 
 class SubModelRepository {
-  final String baseUrl = 'http://localhost:8080/api';
-
   Future<List<SubModel>> getSubModelsByModel(int modelId) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/models/$modelId/submodels'),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
+      Uri.parse('${AppConfig.modelsEndpoint}/$modelId/submodels'),
+      headers: AppConfig.headers,
     );
 
     if (response.statusCode == 200) {
