@@ -18,19 +18,30 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="FixParts - Otomotiv Yedek Parça Stok Yönetim Sistemi">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="autoparts">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <meta name="apple-mobile-web-app-title" content="FixParts">
+  <link rel="apple-touch-icon" href="icons/fixparts.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>autoparts</title>
+  <title>FixParts - Her Parçada Yanınızdayız</title>
   <link rel="manifest" href="manifest.json">
+
+  <script>
+    // Favicon için
+    var link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+    }
+    link.href = 'icons/fixparts.png';
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

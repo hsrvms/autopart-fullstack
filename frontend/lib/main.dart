@@ -27,27 +27,45 @@ class AutoPartsApp extends StatelessWidget {
     final router = GoRouter(
       initialLocation: '/',
       routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const DashboardPage(),
-        ),
-        GoRoute(
-          path: '/makes',
-          builder: (context, state) => const MakesPage(),
-        ),
-        GoRoute(
-          path: '/add-part',
-          builder: (context, state) => const AddPartPage(),
-        ),
-        GoRoute(
-          path: '/stock',
-          builder: (context, state) => const StockPage(),
+        ShellRoute(
+          builder: (context, state, child) {
+            return Scaffold(
+              appBar: AppBar(
+                title: Image.asset(
+                  'assets/images/fixparts.png',
+                  height: 40,
+                ),
+                centerTitle: true,
+                backgroundColor: Colors.white,
+              ),
+              body: child,
+            );
+          },
+          routes: [
+            GoRoute(
+              path: '/',
+              builder: (context, state) => const DashboardPage(),
+            ),
+            GoRoute(
+              path: '/makes',
+              builder: (context, state) => const MakesPage(),
+            ),
+            GoRoute(
+              path: '/add-part',
+              builder: (context, state) => const AddPartPage(),
+            ),
+            GoRoute(
+              path: '/stock',
+              builder: (context, state) => const StockPage(),
+            ),
+          ],
         ),
       ],
     );
 
     return MaterialApp.router(
-      title: 'Oto Yedek Parça Yönetimi',
+      debugShowCheckedModeBanner: false,
+      title: 'Oto Yedek Parça',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,

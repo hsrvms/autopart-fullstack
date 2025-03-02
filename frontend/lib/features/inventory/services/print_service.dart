@@ -110,11 +110,10 @@ class PrintService {
           '${data['make']} ${data['model']} ${data['submodel']}',
           style: pw.TextStyle(fontSize: 8),
         ),
-        if (data['yearRange']?.isNotEmpty ?? false)
-          pw.Text(
-            'Yıl: ${data['yearRange']}',
-            style: pw.TextStyle(fontSize: 8),
-          ),
+        pw.Text(
+          'Yıl: ${data['yearRange']}',
+          style: pw.TextStyle(fontSize: 8),
+        ),
       ],
     );
   }
@@ -136,6 +135,10 @@ class PrintService {
         ),
         pw.Text(
           'Parça No: ${data['partNumber']}',
+          style: pw.TextStyle(fontSize: 8),
+        ),
+        pw.Text(
+          'Yıl: ${data['yearRange']}',
           style: pw.TextStyle(fontSize: 8),
         ),
         pw.Text(
@@ -169,11 +172,10 @@ class PrintService {
           '${data['make']} ${data['model']} ${data['submodel']}',
           style: pw.TextStyle(fontSize: 8),
         ),
-        if (data['yearRange']?.isNotEmpty ?? false)
-          pw.Text(
-            'Yıl: ${data['yearRange']}',
-            style: pw.TextStyle(fontSize: 8),
-          ),
+        pw.Text(
+          'Yıl: ${data['yearRange']}',
+          style: pw.TextStyle(fontSize: 8),
+        ),
         pw.Text(
           'Parça No: ${data['partNumber']} (${data['category']})',
           style: pw.TextStyle(fontSize: 8),

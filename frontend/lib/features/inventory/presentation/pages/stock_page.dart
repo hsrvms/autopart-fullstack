@@ -352,9 +352,6 @@ class _StockPageState extends State<StockPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Stok Durumu'),
-      ),
       body: Column(
         children: [
           Padding(
@@ -386,19 +383,19 @@ class _StockPageState extends State<StockPage> {
                             DataColumn(label: Text('Marka')),
                             DataColumn(label: Text('Model')),
                             DataColumn(label: Text('Alt Model')),
-                            DataColumn(label: Text('Yıl')),
+                            DataColumn(label: Text('Yıl Aralığı')),
                             DataColumn(label: Text('Stok')),
                             DataColumn(label: Text('Min. Stok')),
                             DataColumn(label: Text('Satış Fiyatı')),
                             DataColumn(label: Text('İşlemler')),
                           ],
                           rows: _items.map((item) {
-                            String yearText = '';
+                            String yearRange = '';
                             if (item['year_from'] != null) {
                               if (item['year_to'] != null && item['year_from'] != item['year_to']) {
-                                yearText = '${item['year_from']}-${item['year_to']}';
+                                yearRange = '${item['year_from']}-${item['year_to']}';
                               } else {
-                                yearText = '${item['year_from']}';
+                                yearRange = '${item['year_from']}';
                               }
                             }
 
@@ -410,7 +407,7 @@ class _StockPageState extends State<StockPage> {
                                 DataCell(Text(item['make_name'] ?? '')),
                                 DataCell(Text(item['model_name'] ?? '')),
                                 DataCell(Text(item['submodel_name'] ?? '')),
-                                DataCell(Text(yearText)),
+                                DataCell(Text(yearRange)),
                                 DataCell(Text('${item['current_stock']}')),
                                 DataCell(Text('${item['minimum_stock']}')),
                                 DataCell(Text('${item['sell_price']} TL')),

@@ -41,6 +41,7 @@ flutter:
     - assets/icons/
     - assets/fonts/
     - .env
+    - assets/images/fixparts.png
   
   fonts:
     - family: Roboto

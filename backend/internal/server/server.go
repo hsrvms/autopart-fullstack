@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+
 	// "html/template"
 	// "io"
 	"log"
@@ -45,7 +46,7 @@ func New(cfg *config.Config, database *db.Database) *Server {
 
 	// Add template functions if needed
 	// tmpl.Funcs(template.FuncMap{
-		// Add any custom functions here
+	// Add any custom functions here
 	// })
 
 	// Parse all templates
@@ -63,9 +64,10 @@ func New(cfg *config.Config, database *db.Database) *Server {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"*"},
-		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
-		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowOrigins:     []string{"https://fixparts-473e8.web.app", "http://localhost:3000", "http://localhost:5000"},
+		AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowCredentials: true,
 	}))
 
 	// Set default content type and character encoding

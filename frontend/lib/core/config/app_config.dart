@@ -3,7 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class AppConfig {
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://57.129.47.116:8080/api',
+    defaultValue: 'https://57.129.47.116:8080/api',
   );
 
   // API endpoint'leri
@@ -22,6 +22,7 @@ class AppConfig {
   static const Map<String, String> headers = {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
   };
 
   // Geliştirme ortamında mı kontrol et
