@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import '../../../../core/config/app_config.dart';
 
 class InventoryPage extends StatefulWidget {
@@ -14,6 +14,12 @@ class InventoryPage extends StatefulWidget {
 class _InventoryPageState extends State<InventoryPage> {
   List<Map<String, dynamic>> _items = [];
   bool _isLoading = true;
+  final Dio _dio = Dio(BaseOptions(
+    baseUrl: AppConfig.baseUrl,
+    connectTimeout: Duration(milliseconds: AppConfig.connectTimeout),
+    receiveTimeout: Duration(milliseconds: AppConfig.receiveTimeout),
+    headers: AppConfig.headers,
+  ));
 
   @override
   void initState() {
@@ -22,32 +28,36 @@ class _InventoryPageState extends State<InventoryPage> {
   }
 
   Future<void> _loadItems() async {
+    setState(() => _isLoading = true);
     try {
-      final response = await http.get(
-        Uri.parse(AppConfig.itemsEndpoint),
-        headers: AppConfig.headers,
-      );
+      print('Stok listesi yükleniyor...');
+      final response = await _dio.get('/items');
+      print('Stok API yanıtı: ${response.data}');
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
         setState(() {
-          _items = data.cast<Map<String, dynamic>>();
+          _items = List<Map<String, dynamic>>.from(response.data);
           _isLoading = false;
         });
       } else {
-        throw Exception('Failed to load items');
+        print('Stok listesi yüklenirken hata: ${response.statusCode} - ${response.data}');
+        _showError('Stok listesi yüklenirken bir hata oluştu: ${response.statusCode}');
       }
     } catch (e) {
+      print('Stok listesi yüklenirken hata: $e');
+      _showError('Stok listesi yüklenirken bir hata oluştu');
       setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Hata: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   @override

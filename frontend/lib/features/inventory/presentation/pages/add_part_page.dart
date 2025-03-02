@@ -190,29 +190,22 @@ class _AddPartPageState extends State<AddPartPage> {
   Future<void> _loadCategories() async {
     setState(() => _isLoading = true);
     try {
-      final response = await http.get(
-        Uri.parse(AppConfig.categoriesEndpoint),
-        headers: AppConfig.headers,
-      );
+      print('Kategoriler yükleniyor...');
+      final response = await _dio.get(AppConfig.categoriesEndpoint);
+      print('Kategori API yanıtı: ${response.data}');
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
         setState(() {
-          _categories = data.map((item) => Map<String, dynamic>.from(item)).toList();
+          _categories = List<Map<String, dynamic>>.from(response.data);
           _selectedCategory = null;
         });
       } else {
-        throw Exception('Kategoriler yüklenemedi: ${response.statusCode}');
+        print('Kategoriler yüklenirken hata: ${response.statusCode} - ${response.data}');
+        _showError('Kategoriler yüklenirken bir hata oluştu: ${response.statusCode}');
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Kategoriler yüklenirken bir hata oluştu: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      print('Kategoriler yüklenirken hata: $e');
+      _showError('Kategoriler yüklenirken bir hata oluştu');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -221,6 +214,7 @@ class _AddPartPageState extends State<AddPartPage> {
   }
 
   Future<void> _loadSuppliers() async {
+    setState(() => _isLoading = true);
     try {
       print('Tedarikçiler yükleniyor...');
       final response = await _dio.get(AppConfig.suppliersEndpoint);
@@ -229,6 +223,7 @@ class _AddPartPageState extends State<AddPartPage> {
       if (response.statusCode == 200) {
         setState(() {
           _suppliers = List<Map<String, dynamic>>.from(response.data);
+          _selectedSupplier = null;
         });
       } else {
         print('Tedarikçiler yüklenirken hata: ${response.statusCode} - ${response.data}');
@@ -237,6 +232,10 @@ class _AddPartPageState extends State<AddPartPage> {
     } catch (e) {
       print('Tedarikçiler yüklenirken hata: $e');
       _showError('Tedarikçiler yüklenirken bir hata oluştu');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

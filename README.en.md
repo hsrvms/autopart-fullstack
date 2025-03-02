@@ -1,3 +1,13 @@
+
+---- Frontend'i başlatalım:
+cd frontend && flutter run -d chrome
+
+---- Deploy Etmek için:
+cd frontend && flutter build web --release && firebase deploy --only hosting
+
+
+
+
 # AutoParts Flutter App
 
 A multi-platform inventory management system for auto parts stores with Flutter frontend and Go backend.

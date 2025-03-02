@@ -1,10 +1,9 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppConfig {
-  static const String baseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'https://57.129.47.116:8080/api',
-  );
+  static String get baseUrl {
+    return 'https://fixpartsapi.xyz/api';
+  }
 
   // API endpoint'leri
   static String get makesEndpoint => '$baseUrl/makes';
@@ -19,10 +18,9 @@ class AppConfig {
   static const int receiveTimeout = 30000; // 30 saniye
 
   // HTTP Headers
-  static const Map<String, String> headers = {
+  static final Map<String, String> headers = {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
   };
 
   // Geliştirme ortamında mı kontrol et
