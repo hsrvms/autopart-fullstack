@@ -13,7 +13,7 @@ Proje, iki ana bölümden oluşur:
 
 ### Gereksinimler
 
-- Go 1.21 veya üzeri
+- Go 1.24 veya üzeri
 - Flutter SDK
 - Docker ve Docker Compose
 - PostgreSQL 14
