@@ -23,7 +23,7 @@ func NewPostgresInventoryRepository(database *db.Database) InventoryRepository {
 
 func (r *PostgresInventoryRepository) GetItems(ctx context.Context, filter *inventorymodels.ItemFilter) ([]*inventorymodels.Item, error) {
 	query := `
-		SELECT 
+		SELECT
 			i.item_id,
 			i.part_number,
 			i.description,
