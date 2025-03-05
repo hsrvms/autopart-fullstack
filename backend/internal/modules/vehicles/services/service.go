@@ -371,16 +371,16 @@ func (s *vehicleService) validateSubmodel(submodel *vehiclemodels.Submodel) erro
 	if submodel.EngineType == "" {
 		return errors.New("engine type is required")
 	}
-	if submodel.EngineDisplacement <= 0 {
-		return errors.New("valid engine displacement is required")
+	if submodel.EngineDisplacement != nil && *submodel.EngineDisplacement <= 0 {
+		return errors.New("engine displacement must be greater than 0 when provided")
 	}
-	if submodel.FuelType == "" {
+	if submodel.FuelType == nil || *submodel.FuelType == "" {
 		return errors.New("fuel type is required")
 	}
-	if submodel.TransmissionType == "" {
+	if submodel.FuelType == nil || *submodel.TransmissionType == "" {
 		return errors.New("transmission type is required")
 	}
-	if submodel.BodyType == "" {
+	if submodel.BodyType == nil || *submodel.BodyType == "" {
 		return errors.New("body type is required")
 	}
 	return nil
