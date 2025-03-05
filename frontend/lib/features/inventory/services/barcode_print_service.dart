@@ -29,9 +29,9 @@ class BarcodePrintService {
       final pdf = pw.Document();
 
       final pageFormat = PdfPageFormat(
-        105 * PdfPageFormat.mm,
-        148 * PdfPageFormat.mm,
-        marginAll: 5 * PdfPageFormat.mm,
+        template.paperSize.widthInPoints,
+        template.paperSize.heightInPoints,
+        marginAll: 2 * PdfPageFormat.mm,
       );
 
       final theme = pw.ThemeData.withFont(
@@ -48,14 +48,17 @@ class BarcodePrintService {
               barcode,
               vehicleInfo,
               partInfo,
+              pageFormat,
             ),
           ),
         );
       }
 
-      await Printing.sharePdf(
-        bytes: await pdf.save(),
-        filename: 'Barkod - $barcode.pdf',
+      await Printing.layoutPdf(
+        onLayout: (_) => pdf.save(),
+        name: 'Barkod - $barcode.pdf',
+        format: pageFormat,
+        usePrinterSettings: true,
       );
 
       print('PDF oluşturma başarılı');
@@ -71,92 +74,203 @@ class BarcodePrintService {
     String barcode,
     Map<String, String> vehicleInfo,
     Map<String, dynamic> partInfo,
+    PdfPageFormat pageFormat,
   ) {
+    final barcodeWidth = pageFormat.availableWidth * 0.9;
+    final barcodeHeight = pageFormat.availableHeight * 0.3;
+
     switch (template.type) {
       case BarcodeTemplateType.barcodeOnly:
+        return _buildBasicTemplate(barcode, barcodeWidth, barcodeHeight);
       case BarcodeTemplateType.barcodeWithText:
+        return _buildBasicInfoTemplate(barcode, vehicleInfo, barcodeWidth, barcodeHeight);
       case BarcodeTemplateType.barcodeWithDetails:
-        return _buildBarcodeWithDetails(barcode, vehicleInfo, partInfo);
+        return _buildVehicleInfoTemplate(barcode, vehicleInfo, partInfo, barcodeWidth, barcodeHeight);
       case BarcodeTemplateType.compactLabel:
-        return _buildCompactLabel(barcode, vehicleInfo, partInfo);
+        return _buildCompactTemplate(barcode, vehicleInfo, partInfo, barcodeWidth, barcodeHeight);
       case BarcodeTemplateType.fullLabel:
-        return _buildFullLabel(barcode, vehicleInfo, partInfo);
+        return _buildFullTemplate(barcode, vehicleInfo, partInfo, barcodeWidth, barcodeHeight);
     }
   }
 
-  pw.Widget _buildBarcodeWithDetails(
-    String barcode,
-    Map<String, String> vehicleInfo,
-    Map<String, dynamic> partInfo,
-  ) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.BarcodeWidget(
-          data: barcode,
-          width: 200,
-          height: 80,
-          barcode: pw.Barcode.code128(),
-        ),
-        pw.SizedBox(height: 10),
-        pw.Text(barcode),
-        pw.SizedBox(height: 10),
-        pw.Text('${vehicleInfo['make']} ${vehicleInfo['model']}'),
-        if (vehicleInfo['submodel']?.isNotEmpty ?? false) pw.Text(vehicleInfo['submodel']!),
-        pw.Text('Yıl: ${vehicleInfo['year']}'),
-      ],
+  pw.Widget _buildBasicTemplate(String barcode, double width, double height) {
+    return pw.Center(
+      child: pw.Column(
+        mainAxisAlignment: pw.MainAxisAlignment.center,
+        children: [
+          pw.BarcodeWidget(
+            barcode: pw.Barcode.code128(),
+            data: barcode,
+            width: width,
+            height: height,
+          ),
+          pw.SizedBox(height: 2 * PdfPageFormat.mm),
+          pw.Text(
+            barcode,
+            style: pw.TextStyle(fontSize: 8),
+          ),
+        ],
+      ),
     );
   }
 
-  pw.Widget _buildCompactLabel(
+  pw.Widget _buildBasicInfoTemplate(
     String barcode,
     Map<String, String> vehicleInfo,
-    Map<String, dynamic> partInfo,
+    double width,
+    double height,
   ) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.BarcodeWidget(
-          data: barcode,
-          width: 200,
-          height: 80,
-          barcode: pw.Barcode.code128(),
-        ),
-        pw.SizedBox(height: 5),
-        pw.Text(barcode),
-        pw.SizedBox(height: 5),
-        pw.Text('${vehicleInfo['make']} ${vehicleInfo['model']}'),
-        if (vehicleInfo['submodel']?.isNotEmpty ?? false) pw.Text(vehicleInfo['submodel']!),
-        pw.Text('${partInfo['name']} - ${partInfo['category']}'),
-      ],
+    return pw.Center(
+      child: pw.Column(
+        mainAxisAlignment: pw.MainAxisAlignment.center,
+        children: [
+          pw.BarcodeWidget(
+            barcode: pw.Barcode.code128(),
+            data: barcode,
+            width: width,
+            height: height,
+          ),
+          pw.SizedBox(height: 2 * PdfPageFormat.mm),
+          pw.Text(
+            barcode,
+            style: pw.TextStyle(fontSize: 8),
+          ),
+          pw.Text(
+            '${vehicleInfo['make']} ${vehicleInfo['model']}',
+            style: pw.TextStyle(fontSize: 8),
+          ),
+        ],
+      ),
     );
   }
 
-  pw.Widget _buildFullLabel(
+  pw.Widget _buildVehicleInfoTemplate(
     String barcode,
     Map<String, String> vehicleInfo,
     Map<String, dynamic> partInfo,
+    double width,
+    double height,
   ) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.BarcodeWidget(
-          data: barcode,
-          width: 200,
-          height: 80,
-          barcode: pw.Barcode.code128(),
-        ),
-        pw.SizedBox(height: 5),
-        pw.Text(barcode),
-        pw.SizedBox(height: 5),
-        pw.Text('${vehicleInfo['make']} ${vehicleInfo['model']}'),
-        if (vehicleInfo['submodel']?.isNotEmpty ?? false) pw.Text(vehicleInfo['submodel']!),
-        pw.Text('Yıl: ${vehicleInfo['year']}'),
-        pw.SizedBox(height: 5),
-        pw.Text('${partInfo['name']} - ${partInfo['category']}'),
-        pw.Text('Stok: ${partInfo['current_stock']} / Min: ${partInfo['minimum_stock']}'),
-        pw.Text('Fiyat: ${partInfo['sell_price']} TL'),
-      ],
+    return pw.Center(
+      child: pw.Column(
+        mainAxisAlignment: pw.MainAxisAlignment.center,
+        children: [
+          pw.BarcodeWidget(
+            barcode: pw.Barcode.code128(),
+            data: barcode,
+            width: width,
+            height: height,
+          ),
+          pw.SizedBox(height: 2 * PdfPageFormat.mm),
+          pw.Text(
+            barcode,
+            style: pw.TextStyle(fontSize: 8),
+          ),
+          pw.Text(
+            '${vehicleInfo['make']} ${vehicleInfo['model']} ${vehicleInfo['submodel']}',
+            style: pw.TextStyle(fontSize: 8),
+          ),
+          pw.Text(
+            'Yıl: ${vehicleInfo['year']}',
+            style: pw.TextStyle(fontSize: 8),
+          ),
+          pw.Text(
+            'Parça No: ${partInfo['part_number']}',
+            style: pw.TextStyle(fontSize: 8),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildCompactTemplate(
+    String barcode,
+    Map<String, String> vehicleInfo,
+    Map<String, dynamic> partInfo,
+    double width,
+    double height,
+  ) {
+    return pw.Center(
+      child: pw.Column(
+        mainAxisAlignment: pw.MainAxisAlignment.center,
+        children: [
+          pw.BarcodeWidget(
+            barcode: pw.Barcode.code128(),
+            data: barcode,
+            width: width,
+            height: height,
+          ),
+          pw.SizedBox(height: 2 * PdfPageFormat.mm),
+          pw.Text(
+            barcode,
+            style: pw.TextStyle(fontSize: 8),
+          ),
+          pw.Text(
+            '${vehicleInfo['make']} ${vehicleInfo['model']} ${vehicleInfo['submodel']}',
+            style: pw.TextStyle(fontSize: 8),
+          ),
+          pw.Text(
+            'Parça No: ${partInfo['part_number']}',
+            style: pw.TextStyle(fontSize: 8),
+          ),
+          pw.Text(
+            'Stok: ${partInfo['current_stock']}',
+            style: pw.TextStyle(fontSize: 8),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildFullTemplate(
+    String barcode,
+    Map<String, String> vehicleInfo,
+    Map<String, dynamic> partInfo,
+    double width,
+    double height,
+  ) {
+    return pw.Center(
+      child: pw.Column(
+        mainAxisAlignment: pw.MainAxisAlignment.center,
+        children: [
+          pw.BarcodeWidget(
+            barcode: pw.Barcode.code128(),
+            data: barcode,
+            width: width,
+            height: height,
+          ),
+          pw.SizedBox(height: 2 * PdfPageFormat.mm),
+          pw.Text(
+            barcode,
+            style: pw.TextStyle(fontSize: 8),
+          ),
+          pw.Text(
+            '${vehicleInfo['make']} ${vehicleInfo['model']} ${vehicleInfo['submodel']}',
+            style: pw.TextStyle(fontSize: 8),
+          ),
+          pw.Text(
+            'Yıl: ${vehicleInfo['year']}',
+            style: pw.TextStyle(fontSize: 8),
+          ),
+          pw.Text(
+            'Parça No: ${partInfo['part_number']}',
+            style: pw.TextStyle(fontSize: 8),
+          ),
+          pw.Text(
+            'Kategori: ${partInfo['category']}',
+            style: pw.TextStyle(fontSize: 8),
+          ),
+          pw.Text(
+            'Stok: ${partInfo['current_stock']} / Min: ${partInfo['minimum_stock']}',
+            style: pw.TextStyle(fontSize: 8),
+          ),
+          if (partInfo['location'] != null)
+            pw.Text(
+              'Konum: ${partInfo['location']}',
+              style: pw.TextStyle(fontSize: 8),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -18,16 +18,21 @@ class BarcodeTemplatePreview extends StatelessWidget {
     this.partInfo,
   }) : super(key: key);
 
+  // mm'yi piksel'e çevirmek için (1mm = ~3.7795275591 piksel)
+  double _mmToPixels(double mm) => mm * 3.7795275591;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: template.size.width,
-      height: template.size.height,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
-        borderRadius: BorderRadius.circular(8),
+    return SingleChildScrollView(
+      child: Container(
+        width: _mmToPixels(template.paperSize.width),
+        height: _mmToPixels(template.paperSize.height),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: _buildTemplate(),
       ),
-      child: _buildTemplate(),
     );
   }
 

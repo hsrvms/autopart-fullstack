@@ -8,13 +8,30 @@ enum BarcodeTemplateType {
   fullLabel // Tam etiket (tüm detaylar)
 }
 
+enum PaperSize {
+  a4(width: 210, height: 297),
+  label30x50(width: 30, height: 50),
+  label50x30(width: 50, height: 30),
+  label100x100(width: 100, height: 100),
+  label100x150(width: 100, height: 150);
+
+  final double width; // mm cinsinden genişlik
+  final double height; // mm cinsinden yükseklik
+
+  const PaperSize({required this.width, required this.height});
+
+  // mm'yi point'e çevir (1 mm = 2.83465 point)
+  double get widthInPoints => width * 2.83465;
+  double get heightInPoints => height * 2.83465;
+}
+
 class BarcodeTemplate {
   final String name;
   final String description;
   final String previewImage;
   final List<String> fields;
   final BarcodeTemplateType type;
-  final Size size;
+  final PaperSize paperSize;
 
   const BarcodeTemplate({
     required this.name,
@@ -22,49 +39,41 @@ class BarcodeTemplate {
     required this.previewImage,
     required this.fields,
     required this.type,
-    this.size = const Size(300, 200), // Varsayılan boyut
+    this.paperSize = PaperSize.a4,
   });
 
   static List<BarcodeTemplate> get templates => [
         BarcodeTemplate(
-          name: 'Sadece Barkod',
-          description: 'Yalnızca barkod görüntüsünü içerir',
+          name: 'Küçük Etiket (30x50)',
+          description: 'Sadece barkod ve kod numarası',
           previewImage: '',
           fields: [],
           type: BarcodeTemplateType.barcodeOnly,
-          size: const Size(300, 150),
+          paperSize: PaperSize.label30x50,
         ),
         BarcodeTemplate(
-          name: 'Barkod ve Metin',
-          description: 'Barkod görüntüsü ve barkod numarasını içerir',
+          name: 'Orta Boy Etiket (50x30)',
+          description: 'Barkod ve temel bilgiler',
           previewImage: '',
           fields: [],
           type: BarcodeTemplateType.barcodeWithText,
-          size: const Size(300, 200),
+          paperSize: PaperSize.label50x30,
         ),
         BarcodeTemplate(
-          name: 'Barkod ve Araç Bilgisi',
-          description: 'Barkod, numara ve araç detaylarını içerir',
+          name: 'Büyük Etiket (100x100)',
+          description: 'Barkod ve tüm detaylar',
           previewImage: '',
           fields: [],
           type: BarcodeTemplateType.barcodeWithDetails,
-          size: const Size(300, 250),
+          paperSize: PaperSize.label100x100,
         ),
         BarcodeTemplate(
-          name: 'Kompakt Etiket',
-          description: 'Barkod, numara, araç bilgisi ve parça numarasını içerir',
-          previewImage: '',
-          fields: [],
-          type: BarcodeTemplateType.compactLabel,
-          size: const Size(300, 300),
-        ),
-        BarcodeTemplate(
-          name: 'Tam Etiket',
-          description: 'Tüm bilgileri içeren detaylı etiket',
+          name: 'Geniş Etiket (100x150)',
+          description: 'Tüm bilgiler ve stok detayları',
           previewImage: '',
           fields: [],
           type: BarcodeTemplateType.fullLabel,
-          size: const Size(300, 400),
+          paperSize: PaperSize.label100x150,
         ),
       ];
 }

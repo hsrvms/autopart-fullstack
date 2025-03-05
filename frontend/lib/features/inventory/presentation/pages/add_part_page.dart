@@ -660,6 +660,156 @@ class _AddPartPageState extends State<AddPartPage> {
     );
   }
 
+  Future<void> _showAddSupplierDialog(BuildContext context) async {
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController contactPersonController = TextEditingController();
+    final TextEditingController phoneController = TextEditingController();
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController addressController = TextEditingController();
+    final TextEditingController taxNumberController = TextEditingController();
+    final TextEditingController notesController = TextEditingController();
+
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Yeni Tedarikçi Ekle'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Tedarikçi Adı *',
+                  hintText: 'Tedarikçi adını girin',
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: contactPersonController,
+                decoration: const InputDecoration(
+                  labelText: 'İletişim Kişisi *',
+                  hintText: 'İletişim kişisinin adını girin',
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: phoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Telefon *',
+                  hintText: 'Telefon numarasını girin',
+                ),
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(
+                  labelText: 'E-posta',
+                  hintText: 'E-posta adresini girin',
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: addressController,
+                decoration: const InputDecoration(
+                  labelText: 'Adres',
+                  hintText: 'Adresi girin',
+                ),
+                maxLines: 2,
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: taxNumberController,
+                decoration: const InputDecoration(
+                  labelText: 'Vergi Numarası',
+                  hintText: 'Vergi numarasını girin',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: notesController,
+                decoration: const InputDecoration(
+                  labelText: 'Notlar',
+                  hintText: 'Notları girin',
+                ),
+                maxLines: 2,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('İptal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameController.text.isEmpty || contactPersonController.text.isEmpty || phoneController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Tedarikçi adı, iletişim kişisi ve telefon zorunludur'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              try {
+                final response = await _dio.post(
+                  AppConfig.suppliersEndpoint,
+                  data: {
+                    'name': nameController.text,
+                    'contact_person': contactPersonController.text,
+                    'phone': phoneController.text,
+                    'email': emailController.text.isEmpty ? null : emailController.text,
+                    'address': addressController.text.isEmpty ? null : addressController.text,
+                    'tax_number': taxNumberController.text.isEmpty ? null : taxNumberController.text,
+                    'notes': notesController.text.isEmpty ? null : notesController.text,
+                    'is_active': true,
+                  },
+                );
+
+                if (response.statusCode == 201) {
+                  if (mounted) {
+                    setState(() {
+                      _suppliers.add(response.data);
+                      _selectedSupplier = response.data;
+                    });
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Tedarikçi başarıyla eklendi'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    // Tedarikçileri yeniden yükle
+                    _loadSuppliers();
+                  }
+                } else {
+                  throw Exception('Tedarikçi eklenirken bir hata oluştu: ${response.statusCode}');
+                }
+              } catch (e) {
+                print('Tedarikçi ekleme hatası: $e');
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Tedarikçi eklenirken bir hata oluştu: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Ekle'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -944,6 +1094,41 @@ class _AddPartPageState extends State<AddPartPage> {
                                       labelText: 'OEM Numarası',
                                       hintText: 'Orijinal parça numarasını girin',
                                     ),
+                                  ),
+                                  const SizedBox(height: 32),
+                                  DropdownButtonFormField<Map<String, dynamic>>(
+                                    value: _selectedSupplier,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Tedarikçi',
+                                      hintText: 'Tedarikçi seçin',
+                                    ),
+                                    items: _suppliers.map((supplier) {
+                                      return DropdownMenuItem(
+                                        value: supplier,
+                                        child: Text(
+                                          supplier['name'] ?? '',
+                                          style: const TextStyle(
+                                            fontFamily: 'Roboto',
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400,
+                                            height: 1.5,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _selectedSupplier = value;
+                                      });
+                                    },
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      _showAddSupplierDialog(context);
+                                    },
+                                    icon: const Icon(Icons.add),
+                                    label: const Text('Yeni Tedarikçi Ekle'),
                                   ),
                                 ],
                               ),

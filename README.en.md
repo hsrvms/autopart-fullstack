@@ -5,6 +5,8 @@ cd frontend && flutter run -d chrome
 ---- Deploy Etmek için:
 cd frontend && flutter build web --release && firebase deploy --only hosting
 
+------ Chrome'u CORS kontrollerini devre dışı bırakarak başlatalım:
+cd frontend && flutter run -d chrome --web-browser-flag "--disable-web-security"
 
 
 
