@@ -162,124 +162,114 @@ class _StockPageState extends State<StockPage> {
                 SizedBox(
                   height: 400,
                   child: StatefulBuilder(
-                    builder: (context, setState) => SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: List.generate(5, (index) {
-                          final isSelected = _selectedTemplateIndex == index;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 16),
-                            child: InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _selectedTemplateIndex = index;
-                                });
-                              },
-                              child: Container(
-                                width: 300,
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: isSelected ? Colors.blue : Colors.grey.shade300,
-                                    width: isSelected ? 2 : 1,
+                    builder: (context, setState) => ListView.builder(
+                      itemCount: 5,
+                      itemBuilder: (context, index) {
+                        final isSelected = _selectedTemplateIndex == index;
+                        return Card(
+                          elevation: isSelected ? 4 : 1,
+                          color: isSelected ? Colors.blue.shade50 : null,
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                _selectedTemplateIndex = index;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Şablon ${index + 1}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected ? Colors.blue.shade700 : Colors.black87,
+                                    ),
                                   ),
-                                  borderRadius: BorderRadius.circular(8),
-                                  color: isSelected ? Colors.blue.shade50 : Colors.white,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Şablon ${index + 1}',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: isSelected ? Colors.blue.shade700 : Colors.black87,
-                                      ),
+                                  const SizedBox(height: 16),
+                                  BarcodeWidget(
+                                    barcode: Barcode.code128(),
+                                    data: item['barcode'] ?? item['part_number'],
+                                    width: 250,
+                                    height: 100,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    item['barcode'] ?? item['part_number'],
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected ? Colors.blue.shade700 : Colors.black87,
                                     ),
-                                    const SizedBox(height: 16),
-                                    BarcodeWidget(
-                                      barcode: Barcode.code128(),
-                                      data: item['barcode'] ?? item['part_number'],
-                                      width: 250,
-                                      height: 100,
-                                    ),
+                                  ),
+                                  if (index >= 1) ...[
                                     const SizedBox(height: 8),
                                     Text(
-                                      item['barcode'] ?? item['part_number'],
+                                      'Araç: ${item['make_name'] ?? ""} ${item['model_name'] ?? ""} ${item['submodel_name'] ?? ""}',
                                       style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
                                         color: isSelected ? Colors.blue.shade700 : Colors.black87,
                                       ),
                                     ),
-                                    if (index >= 1) ...[
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Araç: ${item['make_name'] ?? ""} ${item['model_name'] ?? ""} ${item['submodel_name'] ?? ""}',
-                                        style: TextStyle(
-                                          color: isSelected ? Colors.blue.shade700 : Colors.black87,
-                                        ),
+                                    Text(
+                                      'Yıl: ${item['year_from'] != null ? item['year_to'] != null && item['year_from'] != item['year_to'] ? "${item['year_from']}-${item['year_to']}" : "${item['year_from']}" : ""}',
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.blue.shade700 : Colors.black87,
                                       ),
-                                      Text(
-                                        'Yıl: ${item['year_from'] != null ? item['year_to'] != null && item['year_from'] != item['year_to'] ? "${item['year_from']}-${item['year_to']}" : "${item['year_from']}" : ""}',
-                                        style: TextStyle(
-                                          color: isSelected ? Colors.blue.shade700 : Colors.black87,
-                                        ),
-                                      ),
-                                    ],
-                                    if (index >= 2) ...[
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'OEM: ${item['oem_code'] ?? ""}',
-                                        style: TextStyle(
-                                          color: isSelected ? Colors.blue.shade700 : Colors.black87,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Açıklama: ${item['description'] ?? ""}',
-                                        style: TextStyle(
-                                          color: isSelected ? Colors.blue.shade700 : Colors.black87,
-                                        ),
-                                      ),
-                                    ],
-                                    if (index >= 3) ...[
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Kategori: ${item['category_name'] ?? ""}',
-                                        style: TextStyle(
-                                          color: isSelected ? Colors.blue.shade700 : Colors.black87,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Parça No: ${item['part_number'] ?? ""}',
-                                        style: TextStyle(
-                                          color: isSelected ? Colors.blue.shade700 : Colors.black87,
-                                        ),
-                                      ),
-                                    ],
-                                    if (index >= 4) ...[
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Stok: ${item['current_stock'] ?? ""}',
-                                        style: TextStyle(
-                                          color: isSelected ? Colors.blue.shade700 : Colors.black87,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Raf: ${item['location_aisle'] ?? ""}-${item['location_shelf'] ?? ""}-${item['location_bin'] ?? ""}',
-                                        style: TextStyle(
-                                          color: isSelected ? Colors.blue.shade700 : Colors.black87,
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ],
-                                ),
+                                  if (index >= 2) ...[
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'OEM: ${item['oem_code'] ?? ""}',
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.blue.shade700 : Colors.black87,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Açıklama: ${item['description'] ?? ""}',
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.blue.shade700 : Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                  if (index >= 3) ...[
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Kategori: ${item['category_name'] ?? ""}',
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.blue.shade700 : Colors.black87,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Parça No: ${item['part_number'] ?? ""}',
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.blue.shade700 : Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                  if (index >= 4) ...[
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Stok: ${item['current_stock'] ?? ""}',
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.blue.shade700 : Colors.black87,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Konum: ${item['location_aisle'] ?? ""}-${item['location_shelf'] ?? ""}-${item['location_bin'] ?? ""}',
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.blue.shade700 : Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
-                          );
-                        }),
-                      ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -312,16 +302,17 @@ class _StockPageState extends State<StockPage> {
 
                           await PrintService.printBarcode(templateData, _selectedTemplateIndex);
 
-                          if (context.mounted) {
+                          if (mounted) {
+                            Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Yazdırma işlemi başarıyla tamamlandı'),
+                                content: Text('Barkod başarıyla yazdırıldı'),
                                 backgroundColor: Colors.green,
                               ),
                             );
                           }
                         } catch (e) {
-                          if (context.mounted) {
+                          if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Yazdırma hatası: $e'),
@@ -334,10 +325,9 @@ class _StockPageState extends State<StockPage> {
                       icon: const Icon(Icons.print),
                       label: const Text('Yazdır'),
                     ),
-                    ElevatedButton.icon(
+                    TextButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close),
-                      label: const Text('Kapat'),
+                      child: const Text('İptal'),
                     ),
                   ],
                 ),
@@ -376,6 +366,12 @@ class _StockPageState extends State<StockPage> {
                     : SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: DataTable(
+                          headingRowColor: MaterialStateProperty.all(
+                            Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200],
+                          ),
+                          dataRowColor: MaterialStateProperty.all(
+                            Theme.of(context).brightness == Brightness.dark ? Colors.grey[900] : Colors.white,
+                          ),
                           columns: const [
                             DataColumn(label: Text('Parça No')),
                             DataColumn(label: Text('Açıklama')),

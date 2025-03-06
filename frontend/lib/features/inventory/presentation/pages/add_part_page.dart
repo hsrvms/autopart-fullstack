@@ -357,28 +357,33 @@ class _AddPartPageState extends State<AddPartPage> {
     if (partName.isEmpty) return '';
 
     // Türkçe karakterleri İngilizce karakterlere çevir
-    final turkishToEmglish = {
+    final turkishToEnglish = {
       'ç': 'c',
-      'ğ': 'g',
-      'ı': 'i',
-      'ö': 'o',
-      'ş': 's',
-      'ü': 'u',
       'Ç': 'C',
+      'ğ': 'g',
       'Ğ': 'G',
+      'ı': 'i',
       'İ': 'I',
+      'ö': 'o',
       'Ö': 'O',
+      'ş': 's',
       'Ş': 'S',
+      'ü': 'u',
       'Ü': 'U'
     };
 
-    String normalizedName = partName;
-    turkishToEmglish.forEach((turkish, english) {
+    String normalizedName = partName.toLowerCase();
+    turkishToEnglish.forEach((turkish, english) {
       normalizedName = normalizedName.replaceAll(turkish, english);
     });
 
+    // Özel karakterleri ve boşlukları temizle
+    normalizedName = normalizedName.replaceAll(RegExp(r'[^a-zA-Z0-9\s]'), '');
+
     // Kelimelere ayır
-    final words = normalizedName.split(' ');
+    final words = normalizedName.split(' ').where((word) => word.isNotEmpty).toList();
+
+    if (words.isEmpty) return 'XX';
 
     if (words.length == 1) {
       // Tek kelime ise ilk iki harfi al
