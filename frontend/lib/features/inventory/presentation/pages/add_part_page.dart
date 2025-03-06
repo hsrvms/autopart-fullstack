@@ -64,6 +64,15 @@ class _AddPartPageState extends State<AddPartPage> {
   final _yearToController = TextEditingController();
   bool _isActive = true;
 
+  // Tedarikçi formu için controller'lar
+  final nameController = TextEditingController();
+  final contactPersonController = TextEditingController();
+  final phoneController = TextEditingController();
+  final emailController = TextEditingController();
+  final addressController = TextEditingController();
+  final taxNumberController = TextEditingController();
+  final notesController = TextEditingController();
+
   bool _isLoading = false;
   bool _isSearching = false;
   Timer? _debounce;
@@ -84,6 +93,51 @@ class _AddPartPageState extends State<AddPartPage> {
   bool _isGeneratingBarcode = false;
   String? _selectedYear;
   int _selectedTemplateIndex = 1;
+
+  // Sabit seçenekler için listeler
+  final List<String> _engineTypes = [
+    '1.0 TSI',
+    '1.2 TSI',
+    '1.4 TSI',
+    '1.6 TDI',
+    '1.6 FSI',
+    '2.0 TDI',
+    '2.0 TFSI',
+    '3.0 TDI',
+    '3.0 TFSI',
+  ];
+
+  final List<String> _transmissionTypes = [
+    'Manuel',
+    'Otomatik',
+    'Yarı Otomatik',
+    'DSG',
+    'CVT',
+  ];
+
+  final List<String> _bodyTypes = [
+    'Sedan',
+    'Hatchback',
+    'Station Wagon',
+    'SUV',
+    'Coupe',
+    'Cabrio',
+    'Van',
+    'Pickup',
+  ];
+
+  final List<String> _fuelTypes = [
+    'Benzin',
+    'Dizel',
+    'Hibrit',
+    'Elektrik',
+    'LPG',
+  ];
+
+  String? _selectedEngineType;
+  String? _selectedTransmissionType;
+  String? _selectedBodyType;
+  String? _selectedFuelType;
 
   @override
   void initState() {
@@ -114,6 +168,16 @@ class _AddPartPageState extends State<AddPartPage> {
     _warrantyPeriodController.dispose();
     _yearFromController.dispose();
     _yearToController.dispose();
+
+    // Tedarikçi controller'larını temizle
+    nameController.dispose();
+    contactPersonController.dispose();
+    phoneController.dispose();
+    emailController.dispose();
+    addressController.dispose();
+    taxNumberController.dispose();
+    notesController.dispose();
+
     _debounce?.cancel();
     super.dispose();
   }
@@ -146,7 +210,10 @@ class _AddPartPageState extends State<AddPartPage> {
     setState(() => _isLoading = true);
     try {
       final makes = await _makeRepository.getAllMakes();
-      setState(() => _makes = makes);
+      setState(() {
+        _makes = makes;
+        _selectedMake = null;
+      });
     } catch (e) {
       _showError('Markalar yüklenirken bir hata oluştu');
     } finally {
@@ -661,14 +728,6 @@ class _AddPartPageState extends State<AddPartPage> {
   }
 
   Future<void> _showAddSupplierDialog(BuildContext context) async {
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController contactPersonController = TextEditingController();
-    final TextEditingController phoneController = TextEditingController();
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController addressController = TextEditingController();
-    final TextEditingController taxNumberController = TextEditingController();
-    final TextEditingController notesController = TextEditingController();
-
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -750,7 +809,73 @@ class _AddPartPageState extends State<AddPartPage> {
               if (nameController.text.isEmpty || contactPersonController.text.isEmpty || phoneController.text.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Tedarikçi adı, iletişim kişisi ve telefon zorunludur'),
+                    content: Text('Lütfen tüm alanları doldurun'),
+                  ),
+                );
+                return;
+              }
+
+              try {
+                await _addSupplier();
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Hata: $e'),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Ekle'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showAddMakeDialog(BuildContext context) async {
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController countryController = TextEditingController();
+
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Yeni Marka Ekle'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Marka Adı *',
+                hintText: 'Marka adını girin',
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: countryController,
+              decoration: const InputDecoration(
+                labelText: 'Ülke',
+                hintText: 'Markanın ülkesini girin',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('İptal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Marka adı zorunludur'),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -759,15 +884,10 @@ class _AddPartPageState extends State<AddPartPage> {
 
               try {
                 final response = await _dio.post(
-                  AppConfig.suppliersEndpoint,
+                  AppConfig.makesEndpoint,
                   data: {
-                    'name': nameController.text,
-                    'contact_person': contactPersonController.text,
-                    'phone': phoneController.text,
-                    'email': emailController.text.isEmpty ? null : emailController.text,
-                    'address': addressController.text.isEmpty ? null : addressController.text,
-                    'tax_number': taxNumberController.text.isEmpty ? null : taxNumberController.text,
-                    'notes': notesController.text.isEmpty ? null : notesController.text,
+                    'make_name': nameController.text,
+                    'country': countryController.text.isEmpty ? null : countryController.text,
                     'is_active': true,
                   },
                 );
@@ -775,28 +895,28 @@ class _AddPartPageState extends State<AddPartPage> {
                 if (response.statusCode == 201) {
                   if (mounted) {
                     setState(() {
-                      _suppliers.add(response.data);
-                      _selectedSupplier = response.data;
+                      _makes.add(Make.fromJson(response.data));
+                      _selectedMake = Make.fromJson(response.data);
                     });
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Tedarikçi başarıyla eklendi'),
+                        content: Text('Marka başarıyla eklendi'),
                         backgroundColor: Colors.green,
                       ),
                     );
-                    // Tedarikçileri yeniden yükle
-                    _loadSuppliers();
+                    // Markaları yeniden yükle
+                    _loadMakes();
                   }
                 } else {
-                  throw Exception('Tedarikçi eklenirken bir hata oluştu: ${response.statusCode}');
+                  throw Exception('Marka eklenirken bir hata oluştu: ${response.statusCode}');
                 }
               } catch (e) {
-                print('Tedarikçi ekleme hatası: $e');
+                print('Marka ekleme hatası: $e');
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Tedarikçi eklenirken bir hata oluştu: ${e.toString()}'),
+                      content: Text('Marka eklenirken bir hata oluştu: ${e.toString()}'),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -808,6 +928,364 @@ class _AddPartPageState extends State<AddPartPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _showAddModelDialog(BuildContext context) async {
+    if (_selectedMake == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Önce bir marka seçmelisiniz'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final TextEditingController nameController = TextEditingController();
+
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Yeni Model Ekle'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Model Adı *',
+                hintText: 'Model adını girin',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('İptal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Model adı zorunludur'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              try {
+                final response = await _dio.post(
+                  AppConfig.modelsEndpoint,
+                  data: {
+                    'make_id': _selectedMake!.makeId,
+                    'model_name': nameController.text,
+                    'is_active': true,
+                  },
+                );
+
+                if (response.statusCode == 201) {
+                  if (mounted) {
+                    setState(() {
+                      _models.add(Model.fromJson(response.data));
+                      _selectedModel = Model.fromJson(response.data);
+                    });
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Model başarıyla eklendi'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    // Modelleri yeniden yükle
+                    _loadModels(_selectedMake!.makeId);
+                  }
+                } else {
+                  throw Exception('Model eklenirken bir hata oluştu: ${response.statusCode}');
+                }
+              } catch (e) {
+                print('Model ekleme hatası: $e');
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Model eklenirken bir hata oluştu: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Ekle'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showAddSubModelDialog(BuildContext context) async {
+    if (_selectedModel == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Önce bir model seçmelisiniz'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController yearFromController = TextEditingController();
+    final TextEditingController yearToController = TextEditingController();
+    final TextEditingController engineDisplacementController = TextEditingController();
+
+    // Seçili değerleri sıfırla
+    _selectedEngineType = null;
+    _selectedTransmissionType = null;
+    _selectedBodyType = null;
+    _selectedFuelType = null;
+
+    return showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Yeni Alt Model Ekle'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Alt Model Adı *',
+                    hintText: 'Alt model adını girin',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: yearFromController,
+                  decoration: const InputDecoration(
+                    labelText: 'Başlangıç Yılı *',
+                    hintText: 'Örn: 2015',
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: yearToController,
+                  decoration: const InputDecoration(
+                    labelText: 'Bitiş Yılı',
+                    hintText: 'Örn: 2020',
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: _selectedEngineType,
+                  decoration: const InputDecoration(
+                    labelText: 'Motor Tipi *',
+                    hintText: 'Motor tipini seçin',
+                  ),
+                  items: _engineTypes.map((type) {
+                    return DropdownMenuItem(
+                      value: type,
+                      child: Text(type),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedEngineType = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: engineDisplacementController,
+                  decoration: const InputDecoration(
+                    labelText: 'Motor Hacmi *',
+                    hintText: 'Örn: 1.6',
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: _selectedFuelType,
+                  decoration: const InputDecoration(
+                    labelText: 'Yakıt Tipi *',
+                    hintText: 'Yakıt tipini seçin',
+                  ),
+                  items: _fuelTypes.map((type) {
+                    return DropdownMenuItem(
+                      value: type,
+                      child: Text(type),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedFuelType = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: _selectedTransmissionType,
+                  decoration: const InputDecoration(
+                    labelText: 'Şanzıman Tipi *',
+                    hintText: 'Şanzıman tipini seçin',
+                  ),
+                  items: _transmissionTypes.map((type) {
+                    return DropdownMenuItem(
+                      value: type,
+                      child: Text(type),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedTransmissionType = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: _selectedBodyType,
+                  decoration: const InputDecoration(
+                    labelText: 'Kasa Tipi *',
+                    hintText: 'Kasa tipini seçin',
+                  ),
+                  items: _bodyTypes.map((type) {
+                    return DropdownMenuItem(
+                      value: type,
+                      child: Text(type),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedBodyType = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('İptal'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (nameController.text.isEmpty ||
+                    yearFromController.text.isEmpty ||
+                    engineDisplacementController.text.isEmpty ||
+                    _selectedEngineType == null ||
+                    _selectedFuelType == null ||
+                    _selectedTransmissionType == null ||
+                    _selectedBodyType == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Lütfen tüm zorunlu alanları doldurun'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                try {
+                  final Map<String, dynamic> submodelData = {
+                    'model_id': _selectedModel!.modelId,
+                    'submodel_name': nameController.text,
+                    'year_from': int.parse(yearFromController.text),
+                    'year_to': yearToController.text.isEmpty ? null : int.parse(yearToController.text),
+                    'engine_type': _selectedEngineType,
+                    'engine_displacement': double.parse(engineDisplacementController.text),
+                    'fuel_type': _selectedFuelType,
+                    'transmission_type': _selectedTransmissionType,
+                    'body_type': _selectedBodyType,
+                    'is_active': true,
+                  };
+
+                  print('Alt model verisi gönderiliyor: $submodelData');
+
+                  final response = await _dio.post(
+                    AppConfig.submodelsEndpoint,
+                    data: submodelData,
+                  );
+
+                  print('API Yanıtı: ${response.statusCode} - ${response.data}');
+
+                  if (response.statusCode == 201) {
+                    if (mounted) {
+                      setState(() {
+                        _subModels.add(SubModel.fromJson(response.data));
+                        _selectedSubModel = SubModel.fromJson(response.data);
+                      });
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Alt model başarıyla eklendi'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                      // Alt modelleri yeniden yükle
+                      _loadSubModels(_selectedModel!.modelId);
+                    }
+                  } else {
+                    throw Exception('Alt model eklenirken bir hata oluştu: ${response.statusCode}');
+                  }
+                } catch (e) {
+                  print('Alt model ekleme hatası: $e');
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Alt model eklenirken bir hata oluştu: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Ekle'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _addSupplier() async {
+    final response = await _dio.post(
+      AppConfig.suppliersEndpoint,
+      data: {
+        'name': nameController.text,
+        'contact_person': contactPersonController.text,
+        'phone': phoneController.text,
+        'email': emailController.text.isEmpty ? null : emailController.text,
+        'address': addressController.text.isEmpty ? null : addressController.text,
+        'tax_number': taxNumberController.text.isEmpty ? null : taxNumberController.text,
+        'notes': notesController.text.isEmpty ? null : notesController.text,
+        'is_active': true,
+      },
+    );
+
+    if (response.statusCode == 201) {
+      if (mounted) {
+        setState(() {
+          _suppliers.add(response.data);
+          _selectedSupplier = response.data;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tedarikçi başarıyla eklendi'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Tedarikçileri yeniden yükle
+        await _loadSuppliers();
+      }
+    } else {
+      throw Exception('Tedarikçi eklenirken bir hata oluştu: ${response.statusCode}');
+    }
   }
 
   @override
@@ -874,6 +1352,14 @@ class _AddPartPageState extends State<AddPartPage> {
                                       return null;
                                     },
                                   ),
+                                  const SizedBox(height: 8),
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      _showAddMakeDialog(context);
+                                    },
+                                    icon: const Icon(Icons.add),
+                                    label: const Text('Yeni Marka Ekle'),
+                                  ),
                                   const SizedBox(height: 16),
                                   DropdownButtonFormField<Model>(
                                     value: _selectedModel,
@@ -901,6 +1387,14 @@ class _AddPartPageState extends State<AddPartPage> {
                                       return null;
                                     },
                                   ),
+                                  const SizedBox(height: 8),
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      _showAddModelDialog(context);
+                                    },
+                                    icon: const Icon(Icons.add),
+                                    label: const Text('Yeni Model Ekle'),
+                                  ),
                                   const SizedBox(height: 16),
                                   DropdownButtonFormField<SubModel>(
                                     value: _selectedSubModel,
@@ -921,6 +1415,14 @@ class _AddPartPageState extends State<AddPartPage> {
                                       );
                                     }).toList(),
                                     onChanged: _onSubModelSelected,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      _showAddSubModelDialog(context);
+                                    },
+                                    icon: const Icon(Icons.add),
+                                    label: const Text('Yeni Alt Model Ekle'),
                                   ),
                                 ],
                               ),

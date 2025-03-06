@@ -4,11 +4,11 @@ class SubModel {
   final String submodelName;
   final int yearFrom;
   final int? yearTo;
-  final String engineType;
-  final double engineDisplacement;
-  final String fuelType;
-  final String transmissionType;
-  final String bodyType;
+  final String? engineType;
+  final double? engineDisplacement;
+  final String? fuelType;
+  final String? transmissionType;
+  final String? bodyType;
   final String? modelName;
   final String? makeName;
 
@@ -18,11 +18,11 @@ class SubModel {
     required this.submodelName,
     required this.yearFrom,
     this.yearTo,
-    required this.engineType,
-    required this.engineDisplacement,
-    required this.fuelType,
-    required this.transmissionType,
-    required this.bodyType,
+    this.engineType,
+    this.engineDisplacement,
+    this.fuelType,
+    this.transmissionType,
+    this.bodyType,
     this.modelName,
     this.makeName,
   });
@@ -34,11 +34,11 @@ class SubModel {
       submodelName: json['submodel_name'] as String,
       yearFrom: json['year_from'] as int,
       yearTo: json['year_to'] as int?,
-      engineType: json['engine_type'] as String,
-      engineDisplacement: json['engine_displacement'] as double,
-      fuelType: json['fuel_type'] as String,
-      transmissionType: json['transmission_type'] as String,
-      bodyType: json['body_type'] as String,
+      engineType: json['engine_type'] as String?,
+      engineDisplacement: json['engine_displacement'] != null ? (json['engine_displacement'] as num).toDouble() : null,
+      fuelType: json['fuel_type'] as String?,
+      transmissionType: json['transmission_type'] as String?,
+      bodyType: json['body_type'] as String?,
       modelName: json['model_name'] as String?,
       makeName: json['make_name'] as String?,
     );

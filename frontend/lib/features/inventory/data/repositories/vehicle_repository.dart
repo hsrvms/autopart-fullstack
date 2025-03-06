@@ -40,4 +40,4 @@ class VehicleRepository {
     final response = await _apiClient.post('/submodels', data: data);
     return Submodel.fromJson(response.data);
   }
-} 
+}
