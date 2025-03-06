@@ -1297,6 +1297,10 @@ class _AddPartPageState extends State<AddPartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: GestureDetector(
+          onTap: () => context.go('/'),
+          child: Image.asset('assets/images/fixparts.png'),
+        ),
         title: const Text('Yeni Parça Ekle'),
         actions: [
           TextButton.icon(

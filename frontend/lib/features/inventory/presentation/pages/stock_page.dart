@@ -342,6 +342,21 @@ class _StockPageState extends State<StockPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: GestureDetector(
+          onTap: () => context.go('/'),
+          child: Image.asset('assets/images/fixparts.png'),
+        ),
+        title: const Text('Stok Listesi'),
+        actions: [
+          TextButton.icon(
+            onPressed: () => context.go('/add-part'),
+            icon: const Icon(Icons.add, color: Colors.white),
+            label: const Text('Yeni Parça', style: TextStyle(color: Colors.white)),
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
       body: Column(
         children: [
           Padding(
@@ -432,10 +447,6 @@ class _StockPageState extends State<StockPage> {
                       ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.go('/add-part'),
-        child: const Icon(Icons.add),
       ),
     );
   }
