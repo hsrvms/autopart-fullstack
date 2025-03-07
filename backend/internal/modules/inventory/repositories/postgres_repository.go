@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 
@@ -23,47 +22,47 @@ func NewPostgresInventoryRepository(database *db.Database) InventoryRepository {
 
 func (r *PostgresInventoryRepository) GetItems(ctx context.Context, filter *inventorymodels.ItemFilter) ([]*inventorymodels.Item, error) {
 	query := `
-		SELECT
-			i.item_id,
-			i.part_number,
-			i.description,
-			i.category_id,
-			i.buy_price,
-			i.sell_price,
-			i.current_stock,
-			i.minimum_stock,
-			i.barcode,
-			i.supplier_id,
-			i.location_aisle,
-			i.location_shelf,
-			i.location_bin,
-			i.weight_kg,
-			i.dimensions_cm,
-			i.warranty_period,
-			i.image_url,
-			i.is_active,
-			i.notes,
-			i.created_at,
-			i.updated_at,
-			i.year_from,
-			i.year_to,
-			c.name as category_name,
-			s.name as supplier_name,
-			m.make_name,
-			mo.model_name,
-			sm.submodel_name,
-			i.make_id,
-			i.model_id,
-			i.submodel_id,
-			i.oem_code
-		FROM arac.items i
-		LEFT JOIN arac.categories c ON i.category_id = c.category_id
-		LEFT JOIN arac.suppliers s ON i.supplier_id = s.supplier_id
-		LEFT JOIN arac.makes m ON i.make_id = m.make_id
-		LEFT JOIN arac.models mo ON i.model_id = mo.model_id
-		LEFT JOIN arac.submodels sm ON i.submodel_id = sm.submodel_id
-		WHERE 1=1
-	`
+    SELECT
+        i.item_id,
+        i.part_number,
+        i.description,
+        i.category_id,
+        i.buy_price,
+        i.sell_price,
+        i.current_stock,
+        i.minimum_stock,
+        i.barcode,
+        i.supplier_id,
+        i.location_aisle,
+        i.location_shelf,
+        i.location_bin,
+        i.weight_kg,
+        i.dimensions_cm,
+        i.warranty_period,
+        i.image_url,
+        i.is_active,
+        i.notes,
+        i.created_at,
+        i.updated_at,
+        i.year_from,
+        i.year_to,
+        i.make_id,
+        i.model_id,
+        i.submodel_id,
+        i.oem_code,
+        c.name as category_name,
+        s.name as supplier_name,
+        m.make_name,
+        mo.model_name,
+        sm.submodel_name
+    FROM arac.items i
+    LEFT JOIN arac.categories c ON i.category_id = c.category_id
+    LEFT JOIN arac.suppliers s ON i.supplier_id = s.supplier_id
+    LEFT JOIN arac.makes m ON i.make_id = m.make_id
+    LEFT JOIN arac.models mo ON i.model_id = mo.model_id
+    LEFT JOIN arac.submodels sm ON i.submodel_id = sm.submodel_id
+    WHERE 1=1
+    `
 	args := []interface{}{}
 	argPosition := 1
 
@@ -86,9 +85,15 @@ func (r *PostgresInventoryRepository) GetItems(ctx context.Context, filter *inve
 			argPosition++
 		}
 
+		if filter.Barcode != nil {
+			query += fmt.Sprintf(" AND i.barcode ILIKE $%d", argPosition)
+			args = append(args, "%"+*filter.Barcode+"%")
+			argPosition++
+		}
+
 		if filter.SearchTerm != nil {
-			query += fmt.Sprintf(" AND (i.part_number ILIKE $%d OR i.description ILIKE $%d OR c.name ILIKE $%d)",
-				argPosition, argPosition, argPosition)
+			query += fmt.Sprintf(" AND (i.part_number ILIKE $%d OR i.description ILIKE $%d OR c.name ILIKE $%d OR i.barcode ILIKE $%d OR s.name ILIKE $%d OR m.make_name ILIKE $%d OR mo.model_name ILIKE $%d OR sm.submodel_name ILIKE $%d)",
+				argPosition, argPosition, argPosition, argPosition, argPosition, argPosition, argPosition, argPosition)
 			searchTerm := "%" + *filter.SearchTerm + "%"
 			args = append(args, searchTerm)
 			argPosition++
@@ -107,22 +112,6 @@ func (r *PostgresInventoryRepository) GetItems(ctx context.Context, filter *inve
 
 	query += " ORDER BY i.part_number"
 
-	testQuery := "SELECT year_to, year_from FROM arac.items"
-	rows2, err := r.db.Pool.Query(ctx, testQuery, args...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows2.Close()
-
-	if rows2.Next() {
-		var year_to, year_from int
-		err = rows2.Scan(&year_to, &year_from)
-		if err != nil {
-			return nil, err
-		}
-		fmt.Printf("Year To: %d, Year From: %d", year_to, year_from)
-	}
-
 	rows, err := r.db.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -132,29 +121,17 @@ func (r *PostgresInventoryRepository) GetItems(ctx context.Context, filter *inve
 	var items []*inventorymodels.Item
 	for rows.Next() {
 		item := &inventorymodels.Item{}
-		var categoryID sql.NullInt32
-		var supplierID sql.NullInt32
-		var makeID sql.NullInt32
-		var modelID sql.NullInt32
-		var submodelID sql.NullInt32
-		var categoryName sql.NullString
-		var supplierName sql.NullString
-		var makeName sql.NullString
-		var modelName sql.NullString
-		var submodelName sql.NullString
-		var oemCode sql.NullString
-
 		err := rows.Scan(
 			&item.ItemID,
 			&item.PartNumber,
 			&item.Description,
-			&categoryID,
+			&item.CategoryID,
 			&item.BuyPrice,
 			&item.SellPrice,
 			&item.CurrentStock,
 			&item.MinimumStock,
 			&item.Barcode,
-			&supplierID,
+			&item.SupplierID,
 			&item.LocationAisle,
 			&item.LocationShelf,
 			&item.LocationBin,
@@ -168,60 +145,25 @@ func (r *PostgresInventoryRepository) GetItems(ctx context.Context, filter *inve
 			&item.UpdatedAt,
 			&item.YearFrom,
 			&item.YearTo,
-			&categoryName,
-			&supplierName,
-			&makeName,
-			&modelName,
-			&submodelName,
-			&makeID,
-			&modelID,
-			&submodelID,
-			&oemCode,
+			&item.MakeID,
+			&item.ModelID,
+			&item.SubmodelID,
+			&item.OEMCode,
+			&item.CategoryName,
+			&item.SupplierName,
+			&item.MakeName,
+			&item.ModelName,
+			&item.SubmodelName,
 		)
 		if err != nil {
 			return nil, err
 		}
-
-		if categoryID.Valid {
-			item.CategoryID = int(categoryID.Int32)
-		}
-		if supplierID.Valid {
-			intVal := int(supplierID.Int32)
-			item.SupplierID = &intVal
-		}
-		if makeID.Valid {
-			item.MakeID = int(makeID.Int32)
-		}
-		if modelID.Valid {
-			item.ModelID = int(modelID.Int32)
-		}
-		if submodelID.Valid {
-			item.SubmodelID = int(submodelID.Int32)
-		}
-		if categoryName.Valid {
-			item.CategoryName = &categoryName.String
-		}
-		if supplierName.Valid {
-			item.SupplierName = &supplierName.String
-		}
-		if makeName.Valid {
-			item.MakeName = &makeName.String
-		}
-		if modelName.Valid {
-			item.ModelName = &modelName.String
-		}
-		if submodelName.Valid {
-			item.SubmodelName = &submodelName.String
-		}
-		if oemCode.Valid {
-			item.OEMCode = &oemCode.String
-		}
-
 		items = append(items, item)
 	}
 
 	return items, rows.Err()
 }
+
 func (r *PostgresInventoryRepository) GetItemByID(ctx context.Context, id int) (*inventorymodels.Item, error) {
 	query := `
 		SELECT i.*, c.name as category_name, s.name as supplier_name

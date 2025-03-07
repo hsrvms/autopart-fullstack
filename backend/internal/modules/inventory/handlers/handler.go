@@ -26,6 +26,8 @@ func NewInventoryHandler(service services.InventoryService) *InventoryHandler {
 func (h *InventoryHandler) GetItems(c echo.Context) error {
 	filter := &inventorymodels.ItemFilter{}
 
+	fmt.Printf("\n\nSearch: %s\n\n", c.QueryParam("search"))
+
 	// Parse query parameters
 	if categoryID := c.QueryParam("category_id"); categoryID != "" {
 		id, err := strconv.Atoi(categoryID)
@@ -40,9 +42,12 @@ func (h *InventoryHandler) GetItems(c echo.Context) error {
 			filter.SupplierID = &id
 		}
 	}
-
 	if partNumber := c.QueryParam("part_number"); partNumber != "" {
 		filter.PartNumber = &partNumber
+	}
+
+	if barcode := c.QueryParam("barcode"); barcode != "" {
+		filter.Barcode = &barcode
 	}
 
 	if search := c.QueryParam("search"); search != "" {
