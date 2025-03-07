@@ -26,8 +26,6 @@ func NewInventoryHandler(service services.InventoryService) *InventoryHandler {
 func (h *InventoryHandler) GetItems(c echo.Context) error {
 	filter := &inventorymodels.ItemFilter{}
 
-	fmt.Printf("\n\nSearch: %s\n\n", c.QueryParam("search"))
-
 	// Parse query parameters
 	if categoryID := c.QueryParam("category_id"); categoryID != "" {
 		id, err := strconv.Atoi(categoryID)
