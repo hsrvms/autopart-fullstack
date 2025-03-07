@@ -43,6 +43,7 @@ type ItemFilter struct {
 	CategoryID *int    `query:"category_id"`
 	SupplierID *int    `query:"supplier_id"`
 	PartNumber *string `query:"part_number"`
+	Barcode    *string `query:"barcode"`
 	SearchTerm *string `query:"search"`
 	LowStock   *bool   `query:"low_stock"`
 	MakeID     *int    `query:"make_id"`
