@@ -45,6 +45,8 @@ func (r *PostgresInventoryRepository) GetItems(ctx context.Context, filter *inve
 			i.notes,
 			i.created_at,
 			i.updated_at,
+			i.year_from,
+			i.year_to,
 			c.name as category_name,
 			s.name as supplier_name,
 			m.make_name,
@@ -105,6 +107,22 @@ func (r *PostgresInventoryRepository) GetItems(ctx context.Context, filter *inve
 
 	query += " ORDER BY i.part_number"
 
+	testQuery := "SELECT year_to, year_from FROM arac.items"
+	rows2, err := r.db.Pool.Query(ctx, testQuery, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows2.Close()
+
+	if rows2.Next() {
+		var year_to, year_from int
+		err = rows2.Scan(&year_to, &year_from)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("Year To: %d, Year From: %d", year_to, year_from)
+	}
+
 	rows, err := r.db.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -148,6 +166,8 @@ func (r *PostgresInventoryRepository) GetItems(ctx context.Context, filter *inve
 			&item.Notes,
 			&item.CreatedAt,
 			&item.UpdatedAt,
+			&item.YearFrom,
+			&item.YearTo,
 			&categoryName,
 			&supplierName,
 			&makeName,
@@ -202,7 +222,6 @@ func (r *PostgresInventoryRepository) GetItems(ctx context.Context, filter *inve
 
 	return items, rows.Err()
 }
-
 func (r *PostgresInventoryRepository) GetItemByID(ctx context.Context, id int) (*inventorymodels.Item, error) {
 	query := `
 		SELECT i.*, c.name as category_name, s.name as supplier_name
