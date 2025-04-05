@@ -1,0 +1,3 @@
+ALTER TABLE items
+ADD COLUMN IF NOT EXISTS location_floor VARCHAR(50),
+ADD COLUMN IF NOT EXISTS location_corridor VARCHAR(50);
