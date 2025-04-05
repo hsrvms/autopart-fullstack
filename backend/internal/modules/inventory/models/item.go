@@ -5,7 +5,7 @@ import "time"
 type Item struct {
 	ItemID           int       `json:"item_id" db:"item_id"`
 	PartNumber       string    `json:"part_number" db:"part_number"`
-	Description      string    `json:"description" db:"description"`
+	Description      *string   `json:"description,omitempty" db:"description"`
 	CategoryID       int       `json:"category_id" db:"category_id"`
 	MakeID           int       `json:"make_id" db:"make_id"`
 	ModelID          int       `json:"model_id" db:"model_id"`

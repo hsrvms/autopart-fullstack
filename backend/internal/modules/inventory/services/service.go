@@ -242,9 +242,6 @@ func (s *inventoryService) validateItem(item *inventorymodels.Item) error {
 	if item.PartNumber == "" {
 		return errors.New("parça numarası zorunludur")
 	}
-	if item.Description == "" {
-		return errors.New("açıklama zorunludur")
-	}
 	if item.BuyPrice <= 0 {
 		return errors.New("alış fiyatı 0'dan büyük olmalıdır")
 	}
