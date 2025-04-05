@@ -20,9 +20,9 @@ for var in "${REQUIRED_VARS[@]}"; do
   fi
 done
 
-# Run database migrations
-echo "Running database migrations..."
-PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f pkg/db/migrations/add_location_fields.sql
+# # Run database migrations
+# echo "Running database migrations..."
+# PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f pkg/db/migrations/add_location_fields.sql
 
 
 # Build and start the Docker containers
