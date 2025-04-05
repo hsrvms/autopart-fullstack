@@ -33,6 +33,8 @@ func (r *PostgresInventoryRepository) GetItems(ctx context.Context, filter *inve
         i.minimum_stock,
         i.barcode,
         i.supplier_id,
+        i.location_floor,
+        i.location_corridor,
         i.location_aisle,
         i.location_shelf,
         i.location_bin,
@@ -132,6 +134,8 @@ func (r *PostgresInventoryRepository) GetItems(ctx context.Context, filter *inve
 			&item.MinimumStock,
 			&item.Barcode,
 			&item.SupplierID,
+			&item.LocationFloor,
+			&item.LocationCorridor,
 			&item.LocationAisle,
 			&item.LocationShelf,
 			&item.LocationBin,
@@ -253,29 +257,29 @@ func (r *PostgresInventoryRepository) GetItemByBarcode(ctx context.Context, barc
 
 func (r *PostgresInventoryRepository) CreateItem(ctx context.Context, item *inventorymodels.Item) (int, error) {
 	query := `
-		INSERT INTO arac.items (
-			part_number, description, category_id, buy_price, sell_price,
-			current_stock, minimum_stock, barcode, supplier_id,
-			location_aisle, location_shelf, location_bin,
-			weight_kg, dimensions_cm, warranty_period,
-			image_url, is_active, notes, make_id, model_id, submodel_id, oem_code,
-			year_from, year_to
-		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9,
-			$10, $11, $12, $13, $14, $15, $16, $17, $18,
-			$19, $20, $21, $22, $23, $24
-		) RETURNING item_id
+	    INSERT INTO arac.items (
+	        part_number, description, category_id, buy_price, sell_price,
+	        current_stock, minimum_stock, barcode, supplier_id,
+	        location_floor, location_corridor, location_aisle, location_shelf, location_bin,
+	        weight_kg, dimensions_cm, warranty_period,
+	        image_url, is_active, notes, make_id, model_id, submodel_id, oem_code,
+	        year_from, year_to
+	    ) VALUES (
+	        $1, $2, $3, $4, $5, $6, $7, $8, $9,
+	        $10, $11, $12, $13, $14, $15, $16, $17, $18,
+	        $19, $20, $21, $22, $23, $24, $25, $26
+	    ) RETURNING item_id
 	`
-
 	var id int
 	err := r.db.Pool.QueryRow(
 		ctx, query,
 		item.PartNumber, item.Description, item.CategoryID, item.BuyPrice,
 		item.SellPrice, item.CurrentStock, item.MinimumStock, item.Barcode,
-		item.SupplierID, item.LocationAisle, item.LocationShelf, item.LocationBin,
-		item.WeightKg, item.DimensionsCm, item.WarrantyPeriod, item.ImageURL,
-		item.IsActive, item.Notes, item.MakeID, item.ModelID, item.SubmodelID,
-		item.OEMCode, item.YearFrom, item.YearTo,
+		item.SupplierID, item.LocationFloor, item.LocationCorridor, item.LocationAisle,
+		item.LocationShelf, item.LocationBin, item.WeightKg, item.DimensionsCm,
+		item.WarrantyPeriod, item.ImageURL, item.IsActive, item.Notes,
+		item.MakeID, item.ModelID, item.SubmodelID, item.OEMCode,
+		item.YearFrom, item.YearTo,
 	).Scan(&id)
 
 	if err != nil {
@@ -287,26 +291,27 @@ func (r *PostgresInventoryRepository) CreateItem(ctx context.Context, item *inve
 
 func (r *PostgresInventoryRepository) UpdateItem(ctx context.Context, item *inventorymodels.Item) error {
 	query := `
-		UPDATE arac.items SET
-			part_number = $2, description = $3, category_id = $4,
-			buy_price = $5, sell_price = $6, current_stock = $7,
-			minimum_stock = $8, barcode = $9, supplier_id = $10,
-			location_aisle = $11, location_shelf = $12, location_bin = $13,
-			weight_kg = $14, dimensions_cm = $15, warranty_period = $16,
-			image_url = $17, is_active = $18, notes = $19, make_id = $20,
-			model_id = $21, submodel_id = $22, oem_code = $23,
-			year_from = $24, year_to = $25
-		WHERE item_id = $1
+	    UPDATE arac.items SET
+	        part_number = $2, description = $3, category_id = $4,
+	        buy_price = $5, sell_price = $6, current_stock = $7,
+	        minimum_stock = $8, barcode = $9, supplier_id = $10,
+	        location_floor = $11, location_corridor = $12, location_aisle = $13,
+	        location_shelf = $14, location_bin = $15, weight_kg = $16,
+	        dimensions_cm = $17, warranty_period = $18, image_url = $19,
+	        is_active = $20, notes = $21, make_id = $22, model_id = $23,
+	        submodel_id = $24, oem_code = $25, year_from = $26, year_to = $27
+	    WHERE item_id = $1
 	`
 
 	result, err := r.db.Pool.Exec(
 		ctx, query,
 		item.ItemID, item.PartNumber, item.Description, item.CategoryID,
 		item.BuyPrice, item.SellPrice, item.CurrentStock, item.MinimumStock,
-		item.Barcode, item.SupplierID, item.LocationAisle, item.LocationShelf,
-		item.LocationBin, item.WeightKg, item.DimensionsCm, item.WarrantyPeriod,
-		item.ImageURL, item.IsActive, item.Notes, item.MakeID, item.ModelID,
-		item.SubmodelID, item.OEMCode, item.YearFrom, item.YearTo,
+		item.Barcode, item.SupplierID, item.LocationFloor, item.LocationCorridor,
+		item.LocationAisle, item.LocationShelf, item.LocationBin, item.WeightKg,
+		item.DimensionsCm, item.WarrantyPeriod, item.ImageURL, item.IsActive,
+		item.Notes, item.MakeID, item.ModelID, item.SubmodelID, item.OEMCode,
+		item.YearFrom, item.YearTo,
 	)
 
 	if err != nil {
